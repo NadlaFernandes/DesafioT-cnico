@@ -112,3 +112,23 @@ node index.js
 Ao iniciar corretamente, o terminal mostra `Conectado ao MongoDB com sucesso!` antes do endereço da API. Os dados passam a permanecer no banco após encerrar e iniciar o servidor.
 
 O MongoDB gera `_id` próprios, parecidos com `692...`. Ao criar o vendedor, o comprador e o produto, copie os respectivos `_id` retornados e use-os como `vendedorId`, `compradorId` e `produtoId` nas requisições seguintes. Os exemplos numéricos `1` e `2` das partes anteriores não se aplicam à versão MongoDB.
+
+## Parte 4 — Seed e índices
+
+O script de seed gera 5.000 usuários (1.000 vendedores e 4.000 compradores), 1.000 produtos e 100.000 pedidos. Os documentos são inseridos em lotes de 1.000 com `insertMany`.
+
+> Atenção: `npm run seed` remove os documentos e índices secundários existentes nas coleções `usuarios`, `produtos` e `pedidos` antes de inserir a massa de dados.
+
+```powershell
+npm.cmd run seed
+npm.cmd run amostra
+```
+
+O primeiro comando deve exibir as contagens `5000`, `1000` e `100000`. O segundo mostra uma amostra de cada coleção e seus índices. Após o seed, haverá somente o índice padrão `_id_`, demonstrando o cenário sem índices secundários.
+
+Para resolver os gargalos de buscas por tipo de usuário, vendedor, estoque, comprador e produto, execute:
+
+```powershell
+npm.cmd run criar-indices
+npm.cmd run amostra
+```

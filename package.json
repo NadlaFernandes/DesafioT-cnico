@@ -6,11 +6,15 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "dev": "node --watch index.js"
+    "dev": "node --watch index.js",
+    "seed": "node scripts/seed.js",
+    "amostra": "node scripts/amostra.js",
+    "criar-indices": "node scripts/criar-indices.js"
   },
   "dependencies": {
     "dotenv": "^18.0.10",
     "express": "^5.1.0",
+    "mongodb": "^7.9.1",
     "mongoose": "^9.13.0"
   }
 }
