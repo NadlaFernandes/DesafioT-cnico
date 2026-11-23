@@ -18,7 +18,14 @@ const executarEmLotes = async (colecao, documentos) => {
   }
 };
 const removerIndicesSecundarios = async (colecao) => {
-  const indices = await colecao.listIndexes().toArray();
+  let indices;
+  try {
+    indices = await colecao.listIndexes().toArray();
+  } catch (erro) {
+    // No primeiro seed a coleção ainda não existe, portanto não há índices a remover.
+    if (erro.code === 26) return;
+    throw erro;
+  }
   await Promise.all(indices.filter((indice) => indice.name !== '_id_').map((indice) => colecao.dropIndex(indice.name)));
 };
 
