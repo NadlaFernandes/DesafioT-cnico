@@ -8,7 +8,9 @@
     "start": "node index.js",
     "dev": "node --watch index.js",
     "seed": "node scripts/seed.js",
+    "seed:tarefa2": "node scripts/seed-tarefa2.js",
     "amostra": "node scripts/amostra.js",
+    "relatorios:tarefa2": "node scripts/relatorios-tarefa2.js",
     "criar-indices": "node scripts/criar-indices.js"
   },
   "dependencies": {
