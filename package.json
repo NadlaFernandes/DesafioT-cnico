@@ -12,6 +12,8 @@
     "amostra": "node scripts/amostra.js",
     "relatorios:tarefa2": "node scripts/relatorios-tarefa2.js",
     "diagnostico:tarefa3": "node scripts/diagnostico-tarefa3.js",
+    "checkout": "node scripts/checkout-transacional.js",
+    "checkout:demo": "node scripts/demo-checkout-tarefa4.js",
     "criar-indices": "node scripts/criar-indices.js"
   },
   "dependencies": {
