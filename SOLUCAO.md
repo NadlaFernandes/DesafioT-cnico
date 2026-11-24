@@ -102,3 +102,66 @@ Essa separação evita acumular avaliações ou eventos ilimitados dentro de um 
 ## Como a tela do produto fica rápida
 
 Ao buscar o produto por `_id`, a tela recebe no próprio documento a média, o total e as dez avaliações mais recentes. Não precisa contar todas as avaliações, calcular uma média ou ordenar dezenas de milhares de registros durante a leitura. O índice padrão `_id_` atende à busca do produto. A coleção `avaliacoes` com índice `{ produtoId: 1, data: -1 }` fica disponível para a tela de histórico completo ou paginação, sem pesar a leitura inicial.
+
+---
+
+# Tarefa 3 — Diagnóstico e otimização de consulta
+
+## Consulta analisada
+
+```javascript
+db.orders.find({
+  shippingCity: "São Paulo",
+  status: "DELIVERED",
+  createdAt: { $gte: new Date(Date.now() - 30 * 86400000) }
+}).sort({ createdAt: -1 })
+```
+
+O diagnóstico usa `explain("executionStats")` na coleção `orders` do banco `marketplace_tarefa2`, gerada pela seed da Tarefa 2. A janela de 30 dias é calculada uma vez e reutilizada nas medições antes e depois.
+
+## Antes do índice
+
+Sem índice secundário compatível, o plano esperado é `COLLSCAN`: o MongoDB lê os documentos da coleção para encontrar os pedidos que correspondem às condições e precisa ordenar os resultados.
+
+| Indicador | Valor observado antes |
+| --- | ---: |
+| `executionTimeMillis` | 65 ms |
+| Estágios do plano | `COLLSCAN` e `SORT` |
+| `totalDocsExamined` | 100.000 |
+| `totalKeysExamined` | 0 |
+| `nReturned` | 536 |
+
+## Índice composto — regra ESR
+
+```javascript
+db.orders.createIndex(
+  { shippingCity: 1, status: 1, createdAt: -1 },
+  { name: "idx_orders_city_status_createdAt" }
+)
+```
+
+Os campos de igualdade (`shippingCity` e `status`) vêm primeiro. `createdAt` vem em seguida na direção descendente para atender à ordenação decrescente; o mesmo campo também delimita a janela temporal de 30 dias. A ordem do índice segue Equality, Sort, Range (ESR) para os predicados apresentados.
+
+## Depois do índice
+
+Preencher esta tabela com a segunda parte da saída do diagnóstico:
+
+| Indicador | Valor observado depois |
+| --- | ---: |
+| `executionTimeMillis` | 9 ms |
+| Estágios do plano | `IXSCAN` e `FETCH` |
+| `totalDocsExamined` | 536 |
+| `totalKeysExamined` | 536 |
+| `nReturned` | 536 |
+
+Na execução registrada, os documentos examinados caíram de 100.000 para 536 (redução de 99,46%) e o tempo medido caiu de 65 ms para 9 ms. O plano passou de `COLLSCAN` mais `SORT` para `IXSCAN` mais `FETCH`, sem estágio de ordenação. Os tempos são uma observação desta execução e podem variar entre execuções e máquinas; os estágios e a redução de documentos examinados demonstram o efeito do índice.
+
+## Como reproduzir
+
+Com MongoDB ativo e a seed da Tarefa 2 executada:
+
+```powershell
+npm.cmd run diagnostico:tarefa3
+```
+
+O script imprime os indicadores antes e depois e cria o índice em `marketplace_tarefa2.orders`. Ao repetir o comando, ele remove somente o índice de diagnóstico com o nome `idx_orders_city_status_createdAt`, refaz a medição sem ele e o cria novamente para repetir a comparação.
